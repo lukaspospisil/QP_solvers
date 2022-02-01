@@ -1,45 +1,54 @@
 clear all
 
-addpath(genpath('fem/'));
-addpath(genpath('plot/'));
-addpath(genpath('problem/'));
-addpath(genpath('solver/'));
+addpath('plot/')
+addpath('solver/')
 
 p = 0.5; % parameter of constrain
-m = 40; % discretization parameter (size of problem = m^2)
+n = 80; % number of nodes
 
 % ------------------------------------------
 % CREATE THE PROBLEM
 % ------------------------------------------
 % discretize the problem
-[nodes,edges,idxD,idxN,valuesD,valuesN] = membrane_discretization(1,1,m);
-[A,b] = fem2d(nodes,edges,idxD,idxN,valuesD,valuesN);
+h = 1/(n-1);
 
-% get lower bound
-l = membrane_get_l( m, p );
+A = 2*diag(ones(n,1)) - diag(ones(n-1,1),1) - diag(ones(n-1,1),-1);
+%b = -15*ones(n,1);
+b = 50*[ones(n/2,1); -ones(n/2,1)];
 
-n = length(b); % problem dimension
+% apply scaling before dirichlet
+A = 1/h*A;
+b = h*b;
+ 
+% apply dirichlet - change system so that x(1)=x(N)=0
+A(1,1) = 1;
+A(n,n) = 1;
+A(1,2) = 0;
+A(2,1) = 0;
+A(n-1,n) = 0;
+A(n,n-1) = 0;
+b(1) = 0;
+b(n) = 0;
+
+A = sparse(A); % bleh!
+
+lb = -ones(n,1);
+ub = ones(n,1);
+
 disp(['n = ' num2str(n)]);
-
-% algorithms setting
-maxit = 1e4; % max number of iterations
-myeps = 1e-4; % precision
-u = []; % upper bound
-x0 = zeros(size(b)); % initial approximation
-normA = gersgorin(A); % estimation of max eigenvalue
-
-
+    
 % ------------------------------------------
 % SOLVE THE PROBLEM
 % ------------------------------------------
 
-% matlab solver
-%options.Algorithm = 'interior-point-convex';
-%options.Display = 'none';
-%x = quadprog(A,-b,[],[],B,c,l,[],zeros(size(b)),options);
+% algorithm settings
+x0 = zeros(size(b));
+maxit = 1e4;
+myeps = 1e-4;
+normA = gersgorin(A);
 
 % mprgp
-[x1, it1, hess_mult1, gp_norms1] = mprgp(A, b, l, u, x0, normA, maxit, myeps);
+[x1, it1, hess_mult1, gp_norms1] = mprgp(A, b, lb, ub, x0, normA, maxit, myeps);
 if true
     % plot algorithm performance
     figure
@@ -53,7 +62,7 @@ if true
 end
 
 % spgqp
-[x2, it2, hess_mult2, gp_norms2] = spgqp(A, b, l, u, x0, normA, maxit, myeps);
+[x2, it2, hess_mult2, gp_norms2] = spgqp(A, b, lb, ub, x0, normA, maxit, myeps);
 if true
     % plot algorithm performance
     figure
@@ -66,10 +75,13 @@ if true
     hold off
 end
 
-
 % ------------------------------------------
 % PLOT THE SOLUTION
 % ------------------------------------------
-membrane_draw_solution(nodes,edges,x2);
-
+figure
+hold on
+plot(1:length(x1),x1,'b')
+plot(1:length(lb),lb,'r')
+plot(1:length(ub),ub,'r')
+hold off
 
