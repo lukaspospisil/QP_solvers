@@ -6,7 +6,7 @@ addpath(genpath('problem/'));
 addpath(genpath('solver/'));
 
 p = 0.5; % parameter of constrain
-m = 40; % discretization parameter (size of problem = m^2)
+m = 100; % discretization parameter (size of problem = m^2)
 
 % ------------------------------------------
 % CREATE THE PROBLEM

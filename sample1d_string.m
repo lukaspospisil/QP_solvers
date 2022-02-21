@@ -2,6 +2,9 @@ clear all
 
 addpath('plot/')
 addpath('solver/')
+addpath('solver/cg/')
+addpath('solver/mprgp/')
+addpath('solver/spgqp/')
 
 p = 0.5; % parameter of constrain
 n = 80; % number of nodes
