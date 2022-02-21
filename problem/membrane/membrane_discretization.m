@@ -1,5 +1,5 @@
-function [P,E,idxD,idxN,valuesD,valuesN] = string_discretization(a,b,n)
-% [P,E,GammaD,GammaN] = string_discretization(a,b,h)
+function [P,E,idxD,idxN,valuesD,valuesN] = membrane_discretization(a,b,n)
+% [P,E,GammaD,GammaN] = membrane_discretization(a,b,h)
 %       Diskretize rectangle <0,a> x <0,b> with step h.
 %       P ... coordinates of nodes of triangle net
 %       E ... tripplet of node indexes
